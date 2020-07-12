@@ -19,9 +19,18 @@
 #include "zcomp.h"
 
 static const char * const backends[] = {
+	"lzo",
+#if IS_ENABLED(CONFIG_CRYPTO_LZ4)
 	"lz4",
-#if IS_ENABLED(CONFIG_CRYPTO_ZSTD)
-	"zstd",
+#endif
+#if IS_ENABLED(CONFIG_CRYPTO_DEFLATE)
+	"deflate",
+#endif
+#if IS_ENABLED(CONFIG_CRYPTO_LZ4HC)
+	"lz4hc",
+#endif
+#if IS_ENABLED(CONFIG_CRYPTO_842)
+	"842",
 #endif
 	NULL
 };
@@ -40,18 +49,24 @@ static void zcomp_strm_free(struct zcomp_strm *zstrm)
  */
 static struct zcomp_strm *zcomp_strm_alloc(struct zcomp *comp)
 {
+
 	struct zcomp_strm *zstrm = kmalloc(sizeof(*zstrm), GFP_KERNEL);
+
 	if (!zstrm)
 		return NULL;
 
 	zstrm->tfm = crypto_alloc_comp(comp->name, 0, 0);
+
 	/*
 	 * allocate 2 pages. 1 for compressed data, plus 1 extra for the
 	 * case when compressed size is larger than the original one
 	 */
+
 	zstrm->buffer = (void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, 1);
+
 	if (IS_ERR_OR_NULL(zstrm->tfm) || !zstrm->buffer) {
 		zcomp_strm_free(zstrm);
+
 		zstrm = NULL;
 	}
 	return zstrm;

@@ -16,6 +16,7 @@ struct zcomp_strm {
 	struct crypto_comp *tfm;
 };
 
+
 /* dynamic per-device compression frontend */
 struct zcomp {
 	struct zcomp_strm * __percpu *stream;
